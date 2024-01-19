@@ -41,14 +41,14 @@ class HelloWindow(QMainWindow):
         self.duck.move(120,30)
         self.duck.resize(40,40)
 
-        #create a textbox for the noise diviation
-        self.label3 = QLabel("Noise Diviation:",self)
+        #create a textbox for the noise deviation
+        self.label3 = QLabel("Noise Deviation:",self)
         self.label3.move(200,0)
         self.noise = QLineEdit(self)
         self.noise.move(200,30)
         self.noise.resize(40,40)
         
-        #creat a button in the window
+        #create a button in the window
         self.button = QPushButton("Run simulation", self)
         self.button.move(20,80)
 
