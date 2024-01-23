@@ -1,0 +1,26 @@
+# Testing code to output voltage from DAC
+from pyftdi.i2c import I2cController, I2cNackError
+import time
+
+# MAX5612 I2C address (7-bit address)
+MAX5612_ADDRESS = 0x48
+
+# Initialize the FT232H I2C controller
+controller = I2cController()
+
+try:
+    # Open the first FT232H device
+    controller.configure(url='ftdi://ftdi:232h/1')
+
+    with controller.get_i2c() as i2c:
+        while True:
+            try:
+                # Set a DAC value (replace 0x7FFF with your desired value)
+                i2c.write_to(MAX5612_ADDRESS, [0x00, 0x7F, 0xFF])
+                time.sleep(1)
+            except I2cNackError:
+                print("I2C NACK received. Device not responding.")
+
+finally:
+    # Close the FT232H device
+    controller.terminate()
