@@ -1,26 +1,45 @@
-# Testing code to output voltage from DAC
-from pyftdi.i2c import I2cController, I2cNackError
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jan 23 14:45:47 2024
+
+@author: pdhum
+"""
+
+import os
 import time
+os.environ["BLINKA_FT232H"]="1"
+import board
+import digitalio
+import kkblinka
 
-# MAX5612 I2C address (7-bit address)
-MAX5612_ADDRESS = 0x48
+def volt2cmd(v):
+    # converts voltages into binary commands for the DAC
+    p = v/2.5
+    if p>1 or p<0:
+        print("voltage out of range")
+        return
+    hexcode = hex((0b01<<22)|(int((p*65535))<<6))
+    return [int(hexcode[2:4], 16), int(hexcode[4:6], 16), int(hexcode[6:8], 16)]
 
-# Initialize the FT232H I2C controller
-controller = I2cController()
 
-try:
-    # Open the first FT232H device
-    controller.configure(url='ftdi://ftdi:232h/1')
-
-    with controller.get_i2c() as i2c:
-        while True:
-            try:
-                # Set a DAC value (replace 0x7FFF with your desired value)
-                i2c.write_to(MAX5612_ADDRESS, [0x00, 0x7F, 0xFF])
-                time.sleep(1)
-            except I2cNackError:
-                print("I2C NACK received. Device not responding.")
-
-finally:
-    # Close the FT232H device
-    controller.terminate()
+def main():
+    clk = digitalio.DigitalInOut(board.C0)
+    mosi = digitalio.DigitalInOut(board.C2)
+    miso = digitalio.DigitalInOut(board.C1)
+    cs0 = digitalio.DigitalInOut(board.C3)
+    cs0.direction = digitalio.Direction.OUTPUT
+    spi=kkblinka.SPIBitBanger(clk, mosi, miso)
+    
+    cs0.value=True
+    try:
+        while True:   
+            cs0.value=False
+            spi.write(volt2cmd(2.5))
+            cs0.value=True
+            time.sleep(1)
+    
+    except KeyboardInterrupt:
+        pass
+    
+if __name__ == "__main__":
+    main()
