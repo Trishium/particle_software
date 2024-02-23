@@ -12,59 +12,117 @@ import board
 import digitalio
 import kkblinka
 
-def volt2cmd(v):
+class dac:
     '''
-    Converts a desired voltage for the DAC into hexadecimal code to control the DAC
-    
-    Parameters
-        v: float or int
-            The voltage to be output by the DAC.
-    
-    Returns
-        array
-            List of bytes to control the 
-    
+    A class to setup and control Digital to Analogue Converters.
     '''
-    p = v/2.5
-    if p>1 or p<0:
-        print("voltage out of range")
-        return
-    hexcode = hex((0b01<<22)|(int((p*65535))<<6))
-    return [int(hexcode[2:4], 16), int(hexcode[4:6], 16), int(hexcode[6:8], 16)]
+    def __init__(self, max_out, pin, spi):
+        '''
+        Sets up a DAC.
+        
+        Parameters
+            max_out: integer or float
+                The maximum possible output of the DAC.
+            pin: object
+                The pin on the board that will output the chip select.
+            spi: object
+                Controls the data transmission using spi protocols.
+        '''
+        self.max_out = max_out
+        self.cs0 = digitalio.DigitalInOut(pin)
+        self.cs0.direction = digitalio.Direction.OUTPUT
+        self.cs0.value = True
+        self.spi = spi
+    
+    def output(self, out):
+        p = out/self.max_out
+        hexcode = hex((0b01<<22)|(int((p*65535))<<6))
+        cmd = [int(hexcode[2:4], 16), int(hexcode[4:6], 16), int(hexcode[6:8], 16)]
+        self.cs0.value=False
+        self.spi.write(cmd)
+        self.cs0.value=True
+        
+    def max_test(self):
+        hexcode = hex((0b01<<22)|(int((65535))<<6))
+        cmd = [int(hexcode[2:4], 16), int(hexcode[4:6], 16), int(hexcode[6:8], 16)]
+        self.cs0.value=False
+        self.spi.write(cmd)
+        self.cs0.value=True
 
 
-def main():
-    v_in = 2
-    resistance_in = 1
-    resistance_out = 2
-    capacitance = 1
-    
+def charge_setup():
     clk = digitalio.DigitalInOut(board.C0)
     mosi = digitalio.DigitalInOut(board.C2)
     miso = digitalio.DigitalInOut(board.C1)
-    cs0 = digitalio.DigitalInOut(board.C3)
-    cs0.direction = digitalio.Direction.OUTPUT
     spi=kkblinka.SPIBitBanger(clk, mosi, miso)
     
-    charge = digitalio.DigitalInOut(board.C0)
+    charge = digitalio.DigitalInOut(board.D7)
     charge.direction = digitalio.Direction.OUTPUT
-    button = digitalio.DigitalInOut(board.C1)
+    button = digitalio.DigitalInOut(board.D6)
     button.direction = digitalio.Direction.INPUT
     
-    cs0.value=True
+    
+    
+    return spi, charge, button 
+
+def count_setup():
+    count_on = digitalio.DigitalInOut(board.D4)
+    count_on.direction = digitalio.Direction.OUTPUT
+
+    digit_1 = digitalio.DigitalInOut(board.C4)
+    digit_1.direction = digitalio.Direction.INPUT
+
+    digit_2 = digitalio.DigitalInOut(board.C6)
+    digit_2.direction = digitalio.Direction.INPUT
+
+    digit_4 = digitalio.DigitalInOut(board.C7)
+    digit_4.direction = digitalio.Direction.INPUT
+
+    digit_8 = digitalio.DigitalInOut(board.C5)
+    digit_8.direction = digitalio.Direction.INPUT
+    count_on.value=True
+    return count_on, digit_1, digit_2, digit_4, digit_8
+
+def main():
+    
+    spi, charge, button = charge_setup()
+    count_on, digit_1, digit_2, digit_4, digit_8 = count_setup()
+    
+    charge_dac = dac(2.5, board.C3, spi)
+    charge_dac.output(2)
+    
+    thresh_dac = dac(2.5, board.D5, spi)
+    thresh_dac.output(0.2)
+    
+    data = []
+    count=0
+    count_on.value=False
+    count_on.value=True
+    
+    
     try:
-        while not button.value: 
+        while not button.value:
+            '''
+            for i in range(10):
+                data.append(count)
+                
+                count = digit_1.value + digit_2.value*2 + digit_4.value*4 + digit_8.value*8
+                    
+                print(count)
+                if count >= 1:
+                    count_on.value=False
+                    count_on.value=True
+            '''
+            charge_dac.output(0)
             charge.value=True
-            cs0.value=False
-            spi.write(volt2cmd(v_in))
-            time.sleep(5*resistance_in*capacitance)
-            
+            charge_dac.output(2)
             charge.value=False
-            cs0.value=True
-            time.sleep(5*resistance_out*capacitance)
+                
+            
         print("Button Pressed")
     except KeyboardInterrupt:
         pass
-    
+    return data, charge_dac, thresh_dac
+
 if __name__ == "__main__":
-    main()
+    data, charge_dac, thresh_dac = main()
