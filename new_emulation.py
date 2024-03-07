@@ -77,13 +77,43 @@ def readJson_Gain(file_path,file_name = "data.json"):
             return [capacitance*voltage_value,fit_calc(threshold_array,hit_array)[0][0]]
         return None
 
+def Find_data_files(file_path):
+    count = 0
+    array = listdir(file_path)
+    for i in range(len(array)):
+        if array[i][3:] == "data"
+            count += 1
+    if count > 0:
+        return [1,count]
+    array = listdir()
+    for i in range(len(array)):
+        if array[i][3:] == "data"
+            count += 1
+    if count > 0:
+        return [2,count]
+    return [0,count]
+
+def Gain_from_data_final(file_path):
+    check = Find_data_files(file_path)
+    if check[0] == 0:
+        return 0
+    voltage_array = np.zeros(check[1])
+    charge_array = np.zeros(check[1])
+    if check[0] == 2:
+        file_path = "/"
+    for i in range(check[1]):
+        values = readJson_Gain(file_path,"data" + str(i) + ".json")
+        voltage_array[i] = values[1]
+        charge_array[i] = values[0]
+    return sum(voltage_array) / sum(charge_array)
+    
 
 def Gain_from_data_true(file_path):
     count = 0
     try:
         array = listdir(file_path)
         for i in range(len(array)):
-            if array[i][:3] == "data":
+            if array[i][3:] == "data":
                 count += 1
         voltage_array = np.zeros(count)
         charge_array = np.zeros(count)
