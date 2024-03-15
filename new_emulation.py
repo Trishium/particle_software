@@ -46,6 +46,8 @@ def fit_calc(x_array,y_array):
     return sp.curve_fit(my_erf, x_array, y_array)
 
 def saveToJson(values,file_name = "example.json"):
+    #Saves data in a JSON formatting for data analysis software
+    #Will replace 
     threshold_list = values[0].tolist()
     hitChance_list = values[1].tolist()
     x = {
@@ -60,6 +62,7 @@ def saveToJson(values,file_name = "example.json"):
     return 0
 
 def readJson_Gain(file_path,file_name = "data.json"):
+    #No longer applicable
         f = None
         try:
             f = open(file_name)
@@ -78,22 +81,27 @@ def readJson_Gain(file_path,file_name = "data.json"):
         return None
 
 def Find_data_files(file_path):
+    #Attempts to find the JSON data files
     count = 0
     array = listdir(file_path)
     for i in range(len(array)):
+    #Sees if data in the given directory
         if array[i][3:] == "data"
             count += 1
     if count > 0:
         return [1,count]
     array = listdir()
     for i in range(len(array)):
+    #Sees if data is in local directory
         if array[i][3:] == "data"
             count += 1
     if count > 0:
         return [2,count]
     return [0,count]
+    #If no data found returns 0
 
 def Gain_from_data_final(file_path):
+    #Final version of retrieving data from JSON files
     check = Find_data_files(file_path)
     if check[0] == 0:
         return 0
@@ -109,6 +117,7 @@ def Gain_from_data_final(file_path):
     
 
 def Gain_from_data_true(file_path):
+    #old function no longer in use
     count = 0
     try:
         array = listdir(file_path)
@@ -139,6 +148,7 @@ def Gain_from_data_true(file_path):
             return 0
     
 def Gain_from_data(file_path):
+    #no longer in use
     try:
         array = listdir(file_path)
         voltage_array = np.zeros(len(array))
@@ -163,12 +173,14 @@ def Gain_from_data(file_path):
 
 
 def trial(capacitance = 1, voltage_in = 10, noise = 5,gain = 1.2):
+    #returns the pass rate for given intial charge and threshold voltage
     voltage_front = gain* capacitance * voltage_in
     threshold_array = np.linspace(0, 2*voltage_in,1000)
     hitChance_array = [cycle(1000,threshold_array[i],voltage_front,noise) for i in range(0,1000)]
     return fit_calc(threshold_array,hitChance_array)
 
 def main(volt_in = 10,capacitance = 1,noise = 5,gain = 1.2):
+    #Finds the gain by iterating through trails for multiple input charges to find the pass rate
     charge = volt_in * capacitance
     charge_arry = np.linspace(0,charge * 2,100)
     voltage_out = [trial(capacitance,charge_arry[i]/capacitance,noise,gain)[0][0] for i in range(0,100)]
