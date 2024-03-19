@@ -11,6 +11,7 @@ os.environ["BLINKA_FT232H"]="1"
 import board
 import digitalio
 import kkblinka
+import numpy as np
 
 class dac:
     '''
@@ -35,14 +36,25 @@ class dac:
         self.spi = spi
     
     def output(self, out):
-        p = out/self.max_out
-        hexcode = hex((0b01<<22)|(int((p*65535))<<6))
-        cmd = [int(hexcode[2:4], 16), int(hexcode[4:6], 16), int(hexcode[6:8], 16)]
+        '''
+        Commands the DAC to output the desired voltage
+
+        Parameters
+            out: integer or float
+                The desired output voltage.
+        '''
+        p = out/self.max_out # <-- Calculates the desired output as a fraction of the max output
+        hexcode = hex((0b01<<22)|(int((p*65535))<<6)) # <-- Creates the binary string to send to the DAC
+        cmd = [int(hexcode[2:4], 16), int(hexcode[4:6], 16), int(hexcode[6:8], 16)] # <-- Converts the binary code to hexadecimal digits
         self.cs0.value=False
-        self.spi.write(cmd)
+        self.spi.write(cmd) # <-- Sends the data using kkblinka
         self.cs0.value=True
         
     def max_test(self):
+        '''
+        Commands the DAC to output its maximum voltage,
+            independent of the maximum voltage used in the constructor.
+        '''
         hexcode = hex((0b01<<22)|(int((65535))<<6))
         cmd = [int(hexcode[2:4], 16), int(hexcode[4:6], 16), int(hexcode[6:8], 16)]
         self.cs0.value=False
@@ -51,6 +63,9 @@ class dac:
 
 
 def charge_setup():
+    '''
+    Sets up the various objects needed to control the Charge Injection Circuit. 
+    '''
     clk = digitalio.DigitalInOut(board.C0)
     mosi = digitalio.DigitalInOut(board.C2)
     miso = digitalio.DigitalInOut(board.C1)
@@ -66,6 +81,9 @@ def charge_setup():
     return spi, charge, button 
 
 def count_setup():
+    '''
+    Sets up the pins needed to control and read the counter.
+    '''
     count_on = digitalio.DigitalInOut(board.D4)
     count_on.direction = digitalio.Direction.OUTPUT
 
@@ -88,13 +106,17 @@ def main():
     spi, charge, button = charge_setup()
     count_on, digit_1, digit_2, digit_4, digit_8 = count_setup()
     
+    charge_volt = 2
+    thresh_volt = 0.5
+    
     charge_dac = dac(2.5, board.C3, spi)
-    charge_dac.output(2)
+    charge_dac.output(charge_volt)
     
     thresh_dac = dac(2.5, board.D5, spi)
-    thresh_dac.output(0.2)
+    thresh_dac.output(thresh_volt)
     
     data = []
+    thresh_list = np.linspace(0,2.5,501)
     count=0
     count_on.value=False
     count_on.value=True
@@ -102,26 +124,29 @@ def main():
     
     try:
         while not button.value:
-            '''
-            for i in range(10):
-                data.append(count)
+            total = 0
+            for i in range(1):
+                #thresh_dac.output(thresh_volt)
                 
                 count = digit_1.value + digit_2.value*2 + digit_4.value*4 + digit_8.value*8
-                    
-                print(count)
+                
+                data.append(count)    
+                
                 if count >= 1:
+                    total+=count
                     count_on.value=False
                     count_on.value=True
-            '''
-            charge_dac.output(0)
-            charge.value=True
-            charge_dac.output(2)
-            charge.value=False
                 
+                charge_dac.output(0)
+                charge.value=True
+                charge_dac.output(charge_volt)
+                charge.value=False
+            print(total)
             
         print("Button Pressed")
     except KeyboardInterrupt:
-        pass
+        charge_dac.max_test()
+        
     return data, charge_dac, thresh_dac
 
 if __name__ == "__main__":
