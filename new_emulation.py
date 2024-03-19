@@ -61,25 +61,6 @@ def saveToJson(values,file_name = "example.json"):
         outfile.write(json_object)
     return 0
 
-def readJson_Gain(file_path,file_name = "data.json"):
-    #No longer applicable
-        f = None
-        try:
-            f = open(file_name)
-        except:
-            try:
-                f = open(file_path + file_name)
-            except:
-                f= open("example.json")
-        if f != None:
-            data = json.load(f)
-            hit_array = np.array(data["hitChance"])
-            threshold_array = np.array(data["threshold"])
-            voltage_value = int(data["Voltage"])
-            capacitance = int(data["Capacitance"])
-            return [capacitance*voltage_value,fit_calc(threshold_array,hit_array)[0][0]]
-        return None
-
 def Find_data_files(file_path):
     #Attempts to find the JSON data files
     count = 0
@@ -114,62 +95,6 @@ def Gain_from_data_final(file_path):
         voltage_array[i] = values[1]
         charge_array[i] = values[0]
     return sum(voltage_array) / sum(charge_array)
-    
-
-def Gain_from_data_true(file_path):
-    #old function no longer in use
-    count = 0
-    try:
-        array = listdir(file_path)
-        for i in range(len(array)):
-            if array[i][3:] == "data":
-                count += 1
-        voltage_array = np.zeros(count)
-        charge_array = np.zeros(count)
-        for i in range(count):
-            values = readJson_Gain(file_path,"data" + str(i) + ".json")
-            voltage_array[i] = values[1]
-            charge_array[i] = values[0]
-        return sum(voltage_array) / sum(charge_array)
-    except:
-        try:
-            array = listdir()
-            for i in range(len(array):
-                if array[i][:3] = "data":
-                    count += 1
-            voltage_array = np.zeros(count)
-            charge_array = np.zeros(count)
-            for i in range(count):
-                values = readJson_gain("/","data" + str(i) + ".json")
-                voltage_array[i] = values[1]
-                charge_array[i] = values[0]
-            return sum(voltage_array) / sum(charge_array)
-        except:
-            return 0
-    
-def Gain_from_data(file_path):
-    #no longer in use
-    try:
-        array = listdir(file_path)
-        voltage_array = np.zeros(len(array))
-        charge_array = np.zeros(len(array))
-        for i in range(len(array)):
-            values = readJson_Gain(file_path,"data" + str(i) + ".json")
-            voltage_array[i] = values[1]
-            charge_array[i] = values[0]
-        return sum(voltage_array) / sum(charge_array)
-    except:
-        try:
-            array = listdir()
-            voltage_array = np.zeros(len(array))
-            charge_array = np.zeros(len(array))
-            for i in range(len(array)):
-                values = readJson_Gain(file_path,"data" + str(i) + ".json")
-                voltage_array[i] = values[1]
-                charge_array[i] = values[0]
-            return sum(voltage_array) / sum(charge_array)
-        except:
-            return 0
 
 
 def trial(capacitance = 1, voltage_in = 10, noise = 5,gain = 1.2):
