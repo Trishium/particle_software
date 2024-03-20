@@ -25,6 +25,8 @@ It's recommended to use sypder as it has most of the libraries already.
 - json
 - scipy
 - pandas
-- kkblinka
-- Adafruit Blinka
+- kkblinka*
+- Adafruit Blinka*
 - matplotlib
+
+  *Not included with spyder
