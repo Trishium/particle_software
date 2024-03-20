@@ -4,8 +4,8 @@ Created on Sat Jan 13 13:22:19 2024
 
 @author: toby
 """
-import trial as analysis
-import generation_of_data as gen
+import data_analysis as analysis
+import data_generation as gen
 import sys
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QAction, QLineEdit, QMessageBox, QLabel
