@@ -18,9 +18,13 @@ WARNINGS:
 - Do not use either data_generation.py or GUI.py in a directory where important data in JSON files starting with 'data', these will be overwritten.
 - Uses function based coding to give future developers greater control so there is no encapsulation, be careful when calling functions that might save over data.
 
-REQUIRED LIBRARIES (for GUI.py, data_generation, data_analysis):
-It's recommended to use sypder as it has all the libraries already.
+REQUIRED LIBRARIES (for GUI.py, data_generation, data_analysis, CIC_plotting, charge_injection_control):
+It's recommended to use sypder as it has most of the libraries already.
 - Numpy
 - PyQt5
 - json
 - scipy
+- pandas
+- kkblinka
+- Adafruit Blinka
+- matplotlib
