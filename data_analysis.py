@@ -21,14 +21,14 @@ def Find_data_files(file_path):
         array = listdir("/")
     for i in range(len(array)):
     #Sees if data in the given directory
-        if array[i][:4] == "data" and array[i][-4:] == "JSON":
+        if array[i][:4] == "data":
             count += 1
     if count > 0:
         return [1,count]
     array = listdir()
     for i in range(len(array)):
     #Sees if data is in local directory
-        if array[i][:4] == "data" and array[i][-4:] == "JSON":
+        if array[i][:4] == "data":
             count += 1
     if count > 0:
         return [2,count]
@@ -51,7 +51,8 @@ def readJson_Gain(file_path,file_name = "data.json"):
             hit_array = np.array(data["hitChance"])
             threshold_array = np.array(data["threshold"])
             charge = float(data["charge"])
-            return [charge,fit_calc(threshold_array,hit_array)[0][0]]
+            values = fit_calc(threshold_array,hit_array)
+            return [charge,values[0][0],values[0][1]]
         return None
 
 def reject_outliers(data, m = 2.):
@@ -60,8 +61,9 @@ def reject_outliers(data, m = 2.):
     s = d/mdev if mdev else np.zeros(len(d))
     return data[s<m]
 
-def Gain_from_data(file_path):
+def Gain_from_data(file_path = "/"):
     #Final version of retrieving data from JSON files
+    uncertainty = 0
     check = Find_data_files(file_path)
     if check[0] == 0:
         return 0
@@ -73,5 +75,6 @@ def Gain_from_data(file_path):
         values = readJson_Gain(file_path,"data" + str(i) + ".json")
         voltage_array[i] = values[1]
         charge_array[i] = values[0]
+        uncertainty += values[2]
     array = reject_outliers(voltage_array/charge_array)
-    return(sum(array)/len(array))
+    return [(sum(array)/len(array)),uncertainty/len(charge_array)]
