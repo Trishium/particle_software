@@ -9,7 +9,12 @@ def my_erf(x, m, s):
     #error function
     return 0.5+0.5*scipy.special.erf((m-x)/(s*(2**0.5)))#pylint: disable=no-member
 
+def linear_fn(x,a,b):
+    #Linear function used for fitting
+    return a*x + b
+
 def fit_calc(x_array,y_array):
+    #fits error fn to data
     return sp.curve_fit(my_erf, x_array, y_array)
 
 def Find_data_files(file_path):
@@ -37,7 +42,7 @@ def Find_data_files(file_path):
     #If no data found returns 0
     
 def readJson_Gain(file_path,file_name = "data.json"):
-    #No longer applicable
+    #Opens given file, extracts data then calculate and returns the output voltage, charge and uncertainty
         f = None
         try:
             f = open(file_name)
@@ -56,6 +61,8 @@ def readJson_Gain(file_path,file_name = "data.json"):
         return None
 
 def reject_outliers(data, m = 2.):
+    #Low values of charge can give inaccurate voltage data, point is to remove anything that can skew this
+    #Might be able to 
     d = np.abs(data - np.median(data))
     mdev = np.median(d)
     s = d/mdev if mdev else np.zeros(len(d))
@@ -77,4 +84,7 @@ def Gain_from_data(file_path = "/"):
         charge_array[i] = values[0]
         uncertainty += values[2]
     array = reject_outliers(voltage_array/charge_array)
-    return [(sum(array)/len(array)),uncertainty/len(charge_array)]
+    fit, var = sp.curve_fit(linear_fn,charge_array,voltage_array)
+    gain = fit[0]
+    #gain found from two different methods, unclear which is better
+    return [(sum(array)/len(array)),uncertainty/len(charge_array),gain]
