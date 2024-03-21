@@ -11,7 +11,7 @@ def cycle(length,v_thresh,voltage,noise_div):
 
 def saveToJson(values,file_name = "example.json"):
     #Saves data in a JSON formatting for data analysis software
-    #Will replace 
+    #Will replace JSON files starting with data
     threshold_list = values[0].tolist()
     hitChance_list = values[1]
     x = {
@@ -25,6 +25,7 @@ def saveToJson(values,file_name = "example.json"):
     return 0
 
 def trial(charge,gain,uncertainty,index):
+    #Creates threshold array based of given gain, and finds pass rate for each values then save the data.
     voltage = charge * gain
     threshold_array = np.linspace(0,voltage * 2,100)
     hitChance_array = [cycle(1000,threshold_array[i],voltage,uncertainty) for i in range(0,100)]
@@ -32,6 +33,7 @@ def trial(charge,gain,uncertainty,index):
     return 0
 
 def main(charge_max = 10, uncertainty = 5, gain = 1.2):
+    #Creates charge array and iterates through generating and saving data for every value
     charge_array = np.linspace(0,charge_max,100)
     for j in range(0,100):
         if trial(charge_array[j],gain,uncertainty,j) != 0:
